@@ -1,0 +1,7 @@
+<!-- -->
+<launch>
+	<include file="$(find magabot)/launch/magabot_driver.launch" />
+	<node pkg="depthimage_to_laserscan" name="depthimage_to_laserscan" type="depthimage_to_laserscan" args="image:=/camera/depth/image_raw"/>
+	<include file="$(find openni2_launch)/launch/openni2.launch" />
+	<node pkg="tf" type="static_transform_publisher" name="link5_broadcaster" args="-0.1 0 0.5 0 0 0 1 base_link camera_link 100" /> 
+</launch>

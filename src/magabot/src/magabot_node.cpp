@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
@@ -12,10 +11,7 @@
 
 #include <cereal_port/CerealPort.h>
 
-
 // MAGABOT Dimensions
-
-
 			
 #ifndef NORMALIZE
     #define NORMALIZE(z) atan2(sin(z), cos(z))	// Normalize angle to domain -pi, pi 
@@ -25,9 +21,8 @@ double MAGABOT_WIDTH = 0.345;  	//m. Between wheels
 double WHEEL_RADIUS = 0.043937;	//m
 double TICKS_PER_TURN_L = 3900;//2450;
 double TICKS_PER_TURN_R = 2230;
+
 //MAGABOT data for odometry
-
-
 double TWOPI  = 6.2831853070;
 double PI = 3.1415926535;
 
@@ -69,8 +64,7 @@ int n_iter = 0;
 float correction = 0;
 int lvel = 0;
 int rvel = 0;
-
-
+double last_yaw=0.0;
 
 void drive(double linear_speed, double angular_speed) 
 {
@@ -86,11 +80,10 @@ void drive(double linear_speed, double angular_speed)
 	{
 		float l_ratio = K_MOTOR_RATIO* 0.5543808461*pow(fabs(linear_speed - ang),-0.1423547731);
 		float r_ratio = K_MOTOR_RATIO* 0.5543808461*pow(fabs(linear_speed + ang),-0.1423547731);
-	
 		right_write = (int)((linear_speed + (angular_speed * MAGABOT_WIDTH / 2)) * r_ratio);
 		left_write = (int)((linear_speed - (angular_speed * MAGABOT_WIDTH / 2)) * l_ratio);
 	}
-	//ROS_FATAL("[ref_values]: Vl = %d ; Vr = %d",left_write, right_write);
+	ROS_FATAL("[ref_values]: Vl = %d ; Vr = %d",left_write, right_write);
 
 	if(left_write < 6 && left_write > 0)
 	{
@@ -110,11 +103,9 @@ void drive(double linear_speed, double angular_speed)
 	{
 		right_write = -7;
 	}
-
 	
 	lvel = left_write;
 	rvel = right_write;
-	
 }
 void cmdVelReceived(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 {
@@ -134,8 +125,7 @@ void getSonars()
     int sonars2 = ((int)(unsigned char)sonars_response[4] * 255 + (int)(unsigned char)sonars_response[5]);
     int sonars3 = ((int)(unsigned char)sonars_response[6] * 255 + (int)(unsigned char)sonars_response[7]);
     int sonars4 = ((int)(unsigned char)sonars_response[8] * 255 + (int)(unsigned char)sonars_response[9]);
-
-	//ROS_FATAL("SONARS:%d %d %d %d %d", sonars0, sonars1, sonars2, sonars3, sonars4);
+   // ROS_FATAL("SONARS:%d %d %d %d %d", sonars0, sonars1, sonars2, sonars3, sonars4);
 }
 
 void getIR()
@@ -148,8 +138,7 @@ void getIR()
     int ir0 = ((int)(unsigned char)ir_response[0]*255 + (int)(unsigned char)ir_response[1]);
     int ir1 = ((int)(unsigned char)ir_response[2]*255 + (int)(unsigned char)ir_response[3]);
     int ir2 = ((int)(unsigned char)ir_response[4]*255 + (int)(unsigned char)ir_response[5]);
-	//ROS_FATAL("IRS:%d %d %d", ir0, ir1, ir2);
-
+    //ROS_FATAL("IRS:%d %d %d", ir0, ir1, ir2);
 }
 
 void getBattery()
@@ -176,16 +165,15 @@ bool getBumpers()
 	_bump = true;
 	//ROS_FATAL("BUMP");
     }
-    
     return _bump;
-    
 }
+
 
 void publish_odometry(int l_ticks, int r_ticks)
 {
 	double last_x = odometry_x;
 	double last_y = odometry_y;
-	double last_yaw = odometry_yaw;  
+	//double last_yaw = odometry_yaw;  
 	last_time = current_time;
 	current_time = ros::Time::now();
 	dt = (current_time - last_time).toSec();
@@ -197,32 +185,31 @@ void publish_odometry(int l_ticks, int r_ticks)
 	double dx = (dr + dl) /2.0;
 	//double angle = (double)((dr - dl)/MAGABOT_WIDTH);
 	//odometry_yaw = -(ypr[0]);	 			//rad
-	//double aux = odometry_yaw + angle;
+	
 	//odometry_yaw = atan2(sin(aux), cos(aux));						//rad
 	odometry_x += dx * cos((double) odometry_yaw);   //m
 	odometry_y += dx * sin((double) odometry_yaw);	//m
+
+	//odometry_yaw = odometry_yaw + angle;
 
 	//double dt = (current_time - last_time).toSec();
 	double vel_x = dx/dt;
 	double vel_y = 0;
 	double vel_yaw = (odometry_yaw - last_yaw)/dt;
-	
-	if(vel_x != 0)
-		ROS_FATAL("[odometry_vel]: vx = %f vrot = %f",vel_x, vel_yaw);
 
-// ******************************************************************************************		//first, we'll publish the transforms over tf
+	last_yaw = odometry_yaw;
+	
+	//	if(vel_x != 0)
+		//ROS_FATAL("[odometry_vel]: vx = %f vrot = %f",vel_x, vel_yaw);
+
+	// *******************************************	//first, we'll publish the transforms over tf
 	geometry_msgs::TransformStamped odom_trans;
 	odom_trans.header.stamp = ros::Time::now();
-	odom_trans.header.frame_id = "odom";
-	odom_trans.child_frame_id = "base_link";
-			
+	odom_trans.header.frame_id = odom_frame_id;
+	odom_trans.child_frame_id = base_frame_id;
 	odom_trans.transform.translation.x = odometry_x;
 	odom_trans.transform.translation.y = odometry_y;
-
-
 	odom_trans.transform.translation.z = 0.0;
-
-
 	odom_trans.transform.rotation = tf::createQuaternionMsgFromYaw(odometry_yaw);
 	odom_broadcaster->sendTransform(odom_trans);
 		
@@ -230,7 +217,7 @@ void publish_odometry(int l_ticks, int r_ticks)
 	//next, we'll publish the odometry message over ROS
 	nav_msgs::Odometry odom;
 	odom.header.stamp = ros::Time::now();
-	odom.header.frame_id = "odom";
+	odom.header.frame_id = odom_frame_id;
 		
 	//set the position
 	odom.pose.pose.position.x = odometry_x;
@@ -238,8 +225,8 @@ void publish_odometry(int l_ticks, int r_ticks)
 	odom.pose.pose.position.z = 0.0;
 
  	odom.pose.pose.orientation = tf::createQuaternionMsgFromYaw(odometry_yaw);
-//set the velocity
-	odom.child_frame_id = "base_link";
+	//set the velocity
+	odom.child_frame_id = base_frame_id; //m1_base_link
 	odom.twist.twist.linear.x = vel_x;
 	odom.twist.twist.linear.y = vel_y;
 	odom.twist.twist.angular.z = vel_yaw;
@@ -301,7 +288,7 @@ int getRPY()
         odometry_yaw = -(double)Yaw_int / 100.0;	//yaw provided in angles
 	odometry_yaw *= M_PI / 180.0;			//converted to rads
        
-	ROS_FATAL("YAW:%f", odometry_yaw);   
+	//ROS_FATAL("YAW:%f", odometry_yaw);   
 	return 0;
 }
 void timerCallback(const ros::TimerEvent&)
@@ -345,6 +332,10 @@ void timerCallback(const ros::TimerEvent&)
 		vel_command[4] = (char)(1);	
 		
 	serial_port.write(vel_command,5);
+
+	//lvel = 0;
+	//rvel = 0;
+
 //ROS_FATAL("%d %d", (int)(abs(lvel)), (int)(abs(rvel)));
 	//char vel_response[1];
 	//serial_port.read(vel_response, 1, 1000);
@@ -359,8 +350,8 @@ int main(int argc, char** argv){
 	ros::NodeHandle n;
 	ros::NodeHandle pn("~");
 	ros::NodeHandle pni("~");
-	std::string port, portinertial;
-	
+	std::string port, portinertial,odom_topic_id,cmd_vel_topic_id;
+	/*	
 	if (argc<2)
 	{
 		port="/dev/ttyACM0";
@@ -374,22 +365,26 @@ int main(int argc, char** argv){
 		portinertial="/dev/ttyACM1";
 		ROS_INFO("Serial port: %s",port.c_str());
 	}	
-	
+	*/
 
+	pn.param<std::string>("port",port,"/dev/ttyACM0");
+	pn.param<std::string>("port_inertial",portinertial,"/dev/ttyACM1");
+	pn.param<std::string>("base_frame_id", base_frame_id, "/base_link"); //change m1_base_link
+	pn.param<std::string>("odom_frame_id", odom_frame_id, "/odom"); //change m1_odom
+	pn.param<std::string>("odom_topic_id", odom_topic_id, "/odom"); 
+	pn.param<std::string>("cmd_vel_topic_id",cmd_vel_topic_id,"/cmd_vel");
 
-	pn.param<std::string>("base_frame_id", base_frame_id, "base_link");
-	pn.param<std::string>("odom_frame_id", odom_frame_id, "odom");
-	
 	// ROS publishers and subscribers
 
-	ros::Publisher odom_pub_ptr = n.advertise<nav_msgs::Odometry>("/odom", 500);
+	ros::Publisher odom_pub_ptr = n.advertise<nav_msgs::Odometry>(odom_topic_id, 1); //500 uin queue
     	tf::TransformBroadcaster odom_broadcaster_ptr;
- 	ros::Subscriber cmd_vel_sub  = n.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, cmdVelReceived);
+ 	ros::Subscriber cmd_vel_sub  = n.subscribe<geometry_msgs::Twist>(cmd_vel_topic_id, 10, cmdVelReceived); //10 in queue
         ros::Timer timer = n.createTimer(ros::Duration(0.1), timerCallback);
 	odom_pub = &odom_pub_ptr;
 	odom_broadcaster = &odom_broadcaster_ptr;	
- 	
-	
+
+
+
 	// baud_rate and serial port:	
 	int baudrate;
 	pn.param<std::string>("port", port, port.c_str()); 
@@ -440,6 +435,7 @@ ros::Duration(2.5).sleep();
     
 	ros::spin(); //trigger callbacks and prevents exiting
   	return(0);
+
 }
 
 

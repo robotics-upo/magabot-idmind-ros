@@ -1,3 +1,4 @@
+<!-- -->
 <launch>
 	<node name ="magabot_node" pkg="magabot" type="magabot_node"> <!--output="screen"-->
 	</node>

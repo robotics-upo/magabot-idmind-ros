@@ -26,7 +26,7 @@ private:
 
 Joystick_Control::Joystick_Control():
   ph_("~"),
-  vel_linear_max(0.7),
+  vel_linear_max(0.2),
   vel_ang_max(0.8)
 {
 	ph_.param("vel_linear_max", vel_linear_max, vel_linear_max);
@@ -40,7 +40,7 @@ Joystick_Control::Joystick_Control():
 
 void Joystick_Control::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
-	twist.angular.z = joy->axes[2]*vel_ang_max;
+	twist.angular.z = joy->axes[0]*vel_ang_max;
 	twist.linear.x = joy->axes[1]*vel_linear_max;
 	//ROS_INFO("linear: %f  ; angular: %f", twist.linear.x, twist.angular.z);
 	vel_pub_.publish(twist);
