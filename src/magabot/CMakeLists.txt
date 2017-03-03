@@ -107,7 +107,7 @@ include_directories(
 
 ## Declare a cpp executable
  add_executable(magabot_node src/magabot_node.cpp)
- add_executable(joy_node src/joystick_node.cpp)
+ add_executable(joystick_node src/joystick_node.cpp)
 
 
 ## Add cmake target dependencies of the executable/library
@@ -119,7 +119,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(magabot_node cereal_port ${catkin_LIBRARIES})
-target_link_libraries(joy_node ${catkin_LIBRARIES})
+target_link_libraries(joystick_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
