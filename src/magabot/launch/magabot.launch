@@ -1,18 +1,27 @@
 <!-- -->
 <launch>
 	<node name ="magabot_node" pkg="magabot" type="magabot_node"> <!--output="screen"-->
+		<param name="port" value="/dev/ttyMagabot" />
+		<param name="port_inertial" value="/dev/ttyMagabotInertial" />
 	</node>
 
-	<node name="hokuyo_laser" pkg="hokuyo_node" type="hokuyo_node" respawn="false" output="screen" >
+	<node pkg="magabot" name="joysticknode" type="joystick_node">
+		<param name="vel_linear_max" value="0.25" />
+		<param name="vel_ang_max" value="0.4" />
+	</node>
+
+	<node pkg="joy" name="joy_node" type="joy_node"/>
+
+<!-- LASER -->
+	<node name="urg" pkg="urg_node" type="urg_node" respawn="false" output="screen" >
 		<remap from="scan" to="base_scan" />
 		<param name="frame_id" value="base_laser" />
-		<param name="calibrate_time" type="bool" value="false"/>
-		<param name="port" type="string" value="/dev/ttyACM2" />
-		<param name="intensity" type="bool" value="false"/>
+		<param name="synchronize_time" type="bool" value="false"/>
+		<param name="serial_port" type="string" value="/dev/ttyURG0" />
+		<param name="publish_intensity" type="bool" value="false"/>
 	</node>
-<!-- Static TFs a bit over 10Hz: -->
-<!-- LASER -->
-	<node pkg="tf" type="static_transform_publisher" name="static_laser_tf" args="0.10 0.0 0.0 0 0 0 base_link base_laser 99" />
 
+<!-- Static TFs a bit over 10Hz: -->
+	<node pkg="tf" type="static_transform_publisher" name="static_laser_tf" args="0.10 0.0 0.0 0 0 0 base_link base_laser 99" />
 
 </launch>
