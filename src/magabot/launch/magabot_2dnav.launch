@@ -6,10 +6,18 @@ Launch File for the navigation stack with a map.
 
 <launch>
 
+	<arg name="magabot_port" default="/dev/ttyMagabot"/>
+	<arg name="inertial_port" default="/dev/ttyMagabotInertial"/>
+	<arg name="laser_port" default="/dev/ttyUSB0"/>
+
 <!-- Robot Driver -->
 <!-- Laser Driver -->
 <!-- Laser TF -->
-<include file="$(find magabot)/launch/magabot.launch" />
+<include file="$(find magabot)/launch/magabot.launch" >
+	<arg name="magabot_port" value="$(arg magabot_port)"/>
+	<arg name="inertial_port" value="$(arg inertial_port)"/>
+	<arg name="laser_port" value="$(arg laser_port)"/>
+</include>
 
 
 <!-- Run the map server: HTS office -->

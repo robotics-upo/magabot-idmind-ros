@@ -121,6 +121,15 @@ include_directories(
 target_link_libraries(magabot_node cereal_port ${catkin_LIBRARIES})
 target_link_libraries(joystick_node ${catkin_LIBRARIES})
 
+add_custom_command(TARGET magabot_node
+        POST_BUILD
+        COMMAND echo "Installing the udev rules to /etc/udev/rules.d ..."
+        # COMMAND sudo pwd
+        COMMAND sudo cp ../../../../src/magabot-idmind-ros/udev-rules/* /etc/udev/rules.d 
+        COMMAND sudo udevadm control -R
+        COMMAND sudo udevadm trigger
+        )
+
 #############
 ## Install ##
 #############

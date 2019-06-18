@@ -1,12 +1,16 @@
 <!-- -->
 <launch>
+	<arg name="magabot_port" default="/dev/ttyMagabot"/>
+	<arg name="inertial_port" default="/dev/ttyMagabotInertial"/>
+	<arg name="laser_port" default="/dev/ttyUSB0"/>
+
 	<node name ="magabot_node" pkg="magabot" type="magabot_node"> <!--output="screen"-->
-		<param name="port" value="/dev/ttyMagabot" />
-		<param name="port_inertial" value="/dev/ttyMagabotInertial" />
+		<param name="port" value="$(arg magabot_port)" />
+		<param name="port_inertial" value="R(arg inertial_port)" />
 	</node>
 
 	<node pkg="magabot" name="joysticknode" type="joystick_node">
-		<param name="vel_linear_max" value="0.25" />
+		<param name="vel_linear_max" value="0.5" />
 		<param name="vel_ang_max" value="0.4" />
 	</node>
 
@@ -17,7 +21,7 @@
 		<remap from="scan" to="base_scan" />
 		<param name="frame_id" value="base_laser" />
 		<param name="synchronize_time" type="bool" value="false"/>
-		<param name="serial_port" type="string" value="/dev/ttyURG0" />
+		<param name="serial_port" type="string" value="$(arg laser_port)" />
 		<param name="publish_intensity" type="bool" value="false"/>
 	</node>
 
