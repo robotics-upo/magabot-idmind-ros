@@ -9,6 +9,7 @@ Launch File for the navigation stack with a map.
 	<arg name="magabot_port" default="/dev/ttyMagabot"/>
 	<arg name="inertial_port" default="/dev/ttyMagabotInertial"/>
 	<arg name="laser_port" default="/dev/ttyUSB0"/>
+	<arg name="map_name" default="idmindfloor2.yaml"/> <!-- To use it, please put the map into the maps folder of this package -->
 
 <!-- Robot Driver -->
 <!-- Laser Driver -->
