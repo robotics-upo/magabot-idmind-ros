@@ -126,8 +126,7 @@ add_custom_command(TARGET magabot_node
         COMMAND echo "Installing the udev rules to /etc/udev/rules.d ..."
         # COMMAND sudo pwd
         COMMAND sudo cp ../../../../src/magabot-idmind-ros/udev-rules/* /etc/udev/rules.d 
-        COMMAND sudo udevadm control -R
-        COMMAND sudo udevadm trigger
+        COMMAND 
         )
 
 #############
