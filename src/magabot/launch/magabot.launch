@@ -2,12 +2,21 @@
 <launch>
 	<arg name="magabot_port" default="/dev/ttyMagabot"/>
 	<arg name="inertial_port" default="/dev/ttyMagabotInertial"/>
-	<arg name="laser_port" default="/dev/ttyUSB0"/>
+	<arg name="laser_port" default="/dev/ttyURG0"/>
 
-	<node name ="magabot_node" pkg="magabot" type="magabot_node"> <!--output="screen"-->
+	<node name ="magabot_node" pkg="magabot" type="magabot_node"> 
 		<param name="port" value="$(arg magabot_port)" />
-		<param name="port_inertial" value="R(arg inertial_port)" />
+		<param name="port_inertial" type="string" value="$(arg inertial_port)" />
 	</node>
+
+	<!-- <node pkg="magabot" name="magabotnode" type="magabot_node">
+		<param name="port" type="string" value="/dev/ttyACM0" />
+		<param name="port_inertial" type="string" value="/dev/ttyACM1"/>		
+		<param name="odom_frame_id" type="string" value="/odom"/>
+		<param name="base_frame_id"  type="string" value="/base_link"/>
+		<param name="cmd_vel_topic_id" type="string" value="/cmd_vel" />
+		<param name="odom_topic_id"  type="string" value="/odom"/>
+	</node> -->
 
 	<node pkg="magabot" name="joysticknode" type="joystick_node">
 		<param name="vel_linear_max" value="0.5" />
