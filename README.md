@@ -37,6 +37,6 @@ This guide details the steps to correctly configure a Magabot robot under a Linu
        
 6. Reboot the system
     
-7. Now you can launch the “magabot.launch” which will launch the laser, the driver, the joystick and the IMU. With a joystick enabled the user can now teleoperate the robot with the aid of a joystick 
+7. Now you can launch the “magabot.launch” which will launch the laser, the driver, the joystick and the IMU. This way, the user can teleoperate the robot.
     
        $ roslaunch magabot magabot.launch
