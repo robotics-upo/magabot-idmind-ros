@@ -1,12 +1,14 @@
 <!-- -->
 <launch>
-	<node pkg="magabot" name="magabotnode" type="magabot_node">
+    <arg name="use_imu" default="true"/>
+	<node pkg="magabot" name="magabotnode" type="magabot_node" output="screen">
 		<param name="port" type="string" value="/dev/ttyMagabot" />
-		<param name="port_inertial" type="string" value="/dev/ttyMagabotInertial"/>		
+		<param name="port_inertial" type="string" value="/dev/ttyMagabotInertial"/>
 		<param name="odom_frame_id" type="string" value="/odom"/>
 		<param name="base_frame_id"  type="string" value="/base_link"/>
 		<param name="cmd_vel_topic_id" type="string" value="/cmd_vel" />
 		<param name="odom_topic_id"  type="string" value="/odom"/>
+		<param name="use_imu" type="bool" value="$(arg use_imu)"/>
 	</node>
 	<node pkg="magabot" name="joysticknode" type="joystick_node"/>
 	<node pkg="joy" name="joy_node" type="joy_node"/>

@@ -4,9 +4,10 @@
 	<arg name="inertial_port" default="/dev/ttyMagabotInertial"/>
 	<arg name="laser_port" default="/dev/ttyURG0"/>
 
-	<node name ="magabot_node" pkg="magabot" type="magabot_node"> 
+	<node name ="magabot_node" pkg="magabot" type="magabot_node" output="screen"> 
 		<param name="port" value="$(arg magabot_port)" />
 		<param name="port_inertial" type="string" value="$(arg inertial_port)" />
+		<param name="use_imu" value="true"/>
 	</node>
 
 	<!-- <node pkg="magabot" name="magabotnode" type="magabot_node">
@@ -17,11 +18,11 @@
 		<param name="cmd_vel_topic_id" type="string" value="/cmd_vel" />
 		<param name="odom_topic_id"  type="string" value="/odom"/>
 	</node> -->
-
-	<arg name="vel_linear_max" default="0.2"/>
+    <arg name="vel_linear_max" default="0.2"/>
+	<arg name="vel_angular_max" default="0.4"/>
 	<node pkg="magabot" name="joysticknode" type="joystick_node">
 		<param name="vel_linear_max" value="$(arg vel_linear_max)" />
-		<param name="vel_ang_max" value="0.4" />
+		<param name="vel_ang_max" value="$(arg vel_angular_max)" />
 	</node>
 
 	<node pkg="joy" name="joy_node" type="joy_node"/>
