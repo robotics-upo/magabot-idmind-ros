@@ -1,8 +1,8 @@
 <!-- -->
 <launch>
 	<node pkg="magabot" name="magabotnode" type="magabot_node">
-		<param name="port" type="string" value="/dev/ttyACM0" />
-		<param name="port_inertial" type="string" value="/dev/ttyACM1"/>		
+		<param name="port" type="string" value="/dev/ttyMagabot" />
+		<param name="port_inertial" type="string" value="/dev/ttyMagabotInertial"/>		
 		<param name="odom_frame_id" type="string" value="/odom"/>
 		<param name="base_frame_id"  type="string" value="/base_link"/>
 		<param name="cmd_vel_topic_id" type="string" value="/cmd_vel" />
