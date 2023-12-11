@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-
+ 
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <tf/transform_broadcaster.h>
@@ -66,6 +66,8 @@ int lvel = 0;
 int rvel = 0;
 double last_yaw=0.0;
 
+bool use_imu = false;
+
 void drive(double linear_speed, double angular_speed) 
 {
 	float ang = angular_speed * MAGABOT_WIDTH/2;
@@ -83,7 +85,7 @@ void drive(double linear_speed, double angular_speed)
 		right_write = (int)((linear_speed + (angular_speed * MAGABOT_WIDTH / 2)) * r_ratio);
 		left_write = (int)((linear_speed - (angular_speed * MAGABOT_WIDTH / 2)) * l_ratio);
 	}
-	ROS_FATAL("[ref_values]: Vl = %d ; Vr = %d",left_write, right_write);
+	//ROS_FATAL("[ref_values]: Vl = %d ; Vr = %d",left_write, right_write);
 
 	if(left_write < 6 && left_write > 0)
 	{
@@ -162,7 +164,7 @@ bool getBumpers()
     serial_port.read(bumper_response, 2, 1000);
     if(bumper_response[0] == 1 || bumper_response[1] == 1)
     {
-	_bump = true;
+        _bump = true;
 	//ROS_FATAL("BUMP");
     }
     return _bump;
@@ -183,8 +185,12 @@ void publish_odometry(int l_ticks, int r_ticks)
 	double dl = -(double)(l_ticks * 3.14 * 2 * WHEEL_RADIUS /TICKS_PER_TURN_L);
 	double dr = (double)(r_ticks * 3.14 * 2 * WHEEL_RADIUS / TICKS_PER_TURN_L);	
 	double dx = (dr + dl) /2.0;
-	//double angle = (double)((dr - dl)/MAGABOT_WIDTH);
-	//odometry_yaw = -(ypr[0]);	 			//rad
+
+	if (!use_imu) {
+		// When not using iMU --> we have to estimate turning angle with the wheel odometry
+		double angle = (double)((dr - dl)/MAGABOT_WIDTH);
+		odometry_yaw += angle;	 			//rad
+	}
 	
 	//odometry_yaw = atan2(sin(aux), cos(aux));						//rad
 	odometry_x += dx * cos((double) odometry_yaw);   //m
@@ -254,7 +260,7 @@ int getRPY()
 	}
 	catch(cereal::Exception& e)
 	{ 
-		ROS_ERROR("ERROR writing INERTIAL_CMD in serial port");
+		//ROS_ERROR("ERROR writing INERTIAL_CMD in serial port");
 		return -1;
 	}
 
@@ -267,7 +273,7 @@ int getRPY()
 	}
 	catch(cereal::Exception& e)
 	{ 
-		ROS_ERROR("ERROR reading INERTIAL from serial port");
+		//ROS_ERROR("ERROR reading INERTIAL from serial port");
 		
 		return(-1); 
 	}
@@ -293,9 +299,11 @@ int getRPY()
 }
 void timerCallback(const ros::TimerEvent&)
 {
-	getRPY();
+	if (use_imu) {
+		getRPY();
+	}
 	
-	getSonars();
+	//getSonars();
 	
 
 	//GET ODOMETRY	
@@ -303,15 +311,16 @@ void timerCallback(const ros::TimerEvent&)
 	tick_command[0] = char(0x74);
 	serial_port.write(tick_command,1);
 	char tick_response[4];
-	serial_port.read(tick_response, 4, 1000);
+	//ROS_FATAL("Reading ticks");
+	serial_port.read(tick_response, 4, 100);
 	int _l_ticks = ((int)tick_response[0]*256 + (int)tick_response[1]);
 	int _r_ticks = ((int)tick_response[2]*256 + (int)tick_response[3]);
-	//ROS_FATAL("ODOM:%d %d", _l_ticks, _r_ticks);	
+	ROS_INFO("ODOM:%d %d", _l_ticks, _r_ticks);	
 	publish_odometry(_l_ticks, _r_ticks);
 	
-	getIR();	
-	getBattery();	
-	getBumpers();
+	//getIR();	
+	//getBattery();	
+	//getBumpers();
 	
 	
 	//WRITE VELOCITIES
@@ -330,15 +339,16 @@ void timerCallback(const ros::TimerEvent&)
 		vel_command[4] = (char)(0);
 	else
 		vel_command[4] = (char)(1);	
-		
+	//ROS_FATAL("Writing commands");	
 	serial_port.write(vel_command,5);
 
 	//lvel = 0;
 	//rvel = 0;
 
-//ROS_FATAL("%d %d", (int)(abs(lvel)), (int)(abs(rvel)));
+	//ROS_FATAL("%d %d", (int)(abs(lvel)), (int)(abs(rvel)));
 	//char vel_response[1];
 	//serial_port.read(vel_response, 1, 1000);
+    serial_port.flush();
 }
 
 //receive cmds_vel from nav_stack
@@ -351,28 +361,14 @@ int main(int argc, char** argv){
 	ros::NodeHandle pn("~");
 	ros::NodeHandle pni("~");
 	std::string port, portinertial,odom_topic_id,cmd_vel_topic_id;
-	/*	
-	if (argc<2)
-	{
-		port="/dev/ttyACM0";
-		portinertial="/dev/ttyACM1";
-		ROS_WARN("No Serial Port defined, defaulting to \"%s\"",port.c_str());
-		ROS_WARN("Usage: \"rosrun [pkg] robot_node /serial_port\"");
-	}
-	else
-	{
-		port="/dev/ttyACM0";
-		portinertial="/dev/ttyACM1";
-		ROS_INFO("Serial port: %s",port.c_str());
-	}	
-	*/
-
+	
 	pn.param<std::string>("port",port,"/dev/ttyACM0");
 	pn.param<std::string>("port_inertial",portinertial,"/dev/ttyACM1");
 	pn.param<std::string>("base_frame_id", base_frame_id, "/base_link"); //change m1_base_link
 	pn.param<std::string>("odom_frame_id", odom_frame_id, "/odom"); //change m1_odom
 	pn.param<std::string>("odom_topic_id", odom_topic_id, "/odom"); 
 	pn.param<std::string>("cmd_vel_topic_id",cmd_vel_topic_id,"/cmd_vel");
+	pn.param<bool>("use_imu", use_imu, false);
 
 	// ROS publishers and subscribers
 
@@ -397,7 +393,7 @@ int main(int argc, char** argv){
 	}
 	catch(cereal::Exception& e)
 	{
-		ROS_FATAL("Robot -- Failed to open odometry serial port!");
+		//ROS_FATAL("Robot -- Failed to open odometry serial port!");
 		ROS_BREAK();
 	}
 ros::Duration(2.5).sleep(); 
@@ -405,29 +401,32 @@ ros::Duration(2.5).sleep();
 	pn.param<std::string>("port_inertial", portinertial, portinertial.c_str()); 
 	pn.param("baudrate2", baudrate2, 115200); 
 	
-	try
-	{ 
-		serial_port_inertial.open((char*)portinertial.c_str(), 	baudrate2); 
-		char command[2];
-		command[0] = (char)0x50;
-		command[1] = (char)0x02;
-		serial_port_inertial.write(command, 2);
-		char buffer[4];
+	if (use_imu) {
 		try
-		{
-			serial_port_inertial.readBytes(buffer, 4, 1000);
-		}
+		{ 
+			serial_port_inertial.open((char*)portinertial.c_str(), 	baudrate2); 
+			char command[2];
+			command[0] = (char)0x50;
+			command[1] = (char)0x02;
+			serial_port_inertial.write(command, 2);
+			char buffer[4];
+			try
+			{
+				serial_port_inertial.readBytes(buffer, 4, 1000);
+			}
+			catch(cereal::Exception& e)
+			{
+				ROS_ERROR("ERROR writing INERTIAL_CMD in serial port");
+			}
+		} 
 		catch(cereal::Exception& e)
 		{
-			ROS_ERROR("ERROR writing INERTIAL_CMD in serial port");
+			//ROS_FATAL("Robot -- Failed to open inertial serial port!");
+			//ROS_BREAK();
 		}
-	}
-	catch(cereal::Exception& e)
-	{
-		ROS_FATAL("Robot -- Failed to open inertial serial port!");
-		//ROS_BREAK();
-	}
 
+	}
+	
     
 	
 	//wait (2.5 seconds) until serial port gets ready
