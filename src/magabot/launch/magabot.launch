@@ -10,14 +10,6 @@
 		<param name="use_imu" value="true"/>
 	</node>
 
-	<!-- <node pkg="magabot" name="magabotnode" type="magabot_node">
-		<param name="port" type="string" value="/dev/ttyACM0" />
-		<param name="port_inertial" type="string" value="/dev/ttyACM1"/>		
-		<param name="odom_frame_id" type="string" value="/odom"/>
-		<param name="base_frame_id"  type="string" value="/base_link"/>
-		<param name="cmd_vel_topic_id" type="string" value="/cmd_vel" />
-		<param name="odom_topic_id"  type="string" value="/odom"/>
-	</node> -->
     <arg name="vel_linear_max" default="0.2"/>
 	<arg name="vel_angular_max" default="0.4"/>
 	<node pkg="magabot" name="joysticknode" type="joystick_node">
@@ -30,8 +22,7 @@
 <!-- LASER -->
 	<arg name="rplidar" default="false"/>
 	<node name="urg" pkg="urg_node" type="urg_node" respawn="false" output="screen" unless="$(arg rplidar)">
-		<remap from="scan" to="base_scan" />
-		<param name="frame_id" value="base_laser" />
+		<param name="frame_id" value="laser" />
 		<param name="synchronize_time" type="bool" value="false"/>
 		<param name="serial_port" type="string" value="$(arg laser_port)" />
 		<param name="publish_intensity" type="bool" value="false"/>
@@ -40,6 +31,6 @@
 
 <!-- Static TFs a bit over 10Hz: -->
 	<arg name="yaw" default="0"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_laser_tf" args="0.10 0 0 $(arg yaw) 0 0 base_link base_laser 99" />
+	<node pkg="tf" type="static_transform_publisher" name="static_laser_tf" args="0.10 0 0 $(arg yaw) 0 0 base_link laser 99" />
 
 </launch>
