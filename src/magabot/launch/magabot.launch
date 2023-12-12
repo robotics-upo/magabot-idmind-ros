@@ -28,7 +28,7 @@
 	<node pkg="joy" name="joy_node" type="joy_node"/>
 
 <!-- LASER -->
-	<arg name="rplidar" defaut="false"/>
+	<arg name="rplidar" default="false"/>
 	<node name="urg" pkg="urg_node" type="urg_node" respawn="false" output="screen" unless="$(arg rplidar)">
 		<remap from="scan" to="base_scan" />
 		<param name="frame_id" value="base_laser" />
