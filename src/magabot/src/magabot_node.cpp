@@ -18,7 +18,8 @@
 #endif
 
 double MAGABOT_WIDTH = 0.345;  	//m. Between wheels
-double WHEEL_RADIUS = 0.043937;	//m
+// double WHEEL_RADIUS = 0.043937;	//m Original value
+double WHEEL_RADIUS = 0.042;	//m
 double TICKS_PER_TURN_L = 3900;//2450;
 double TICKS_PER_TURN_R = 2230;
 
