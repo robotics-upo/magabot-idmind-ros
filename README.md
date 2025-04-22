@@ -29,14 +29,18 @@ This guide details the steps to correctly configure a Magabot robot under a Linu
 
 4. Add additional ROS stuff (replace <distro> to your distro)
     
-       $ sudo apt-install ros-<distro>-joy ros-<distro>-urg-node
+       $ sudo apt-install ros-<distro>-joy ros-<distro>-urg-node ros-<distro>-rplidar-ros
        
 5. Add user to “dialout” group in order to be able to open the Hokuyo laser port:
     
        $ sudo adduser <user> dialout
+
+6. Copy the udev rules so that the Magabot is discovered and configured. If correct, there should be two Magabot devices:  /dev/ttyMagabot and /dev/ttyMagabotInertial
+
+       $ sudo cp udev-rules/10-usb-serial.rules /etc/udev/rules.d  
        
-6. Reboot the system
+7. Reboot the system
     
-7. Now you can launch the “magabot.launch” which will launch the laser, the driver, the joystick and the IMU. This way, you can teleoperate the robot.
+8. Now you can launch the “magabot.launch” which will launch the laser, the driver, the joystick and the IMU. This way, you can teleoperate the robot.
     
        $ roslaunch magabot magabot.launch
