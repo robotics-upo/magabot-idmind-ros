@@ -3,8 +3,9 @@
 	<arg name="magabot_port" default="/dev/ttyMagabot"/>
 	<arg name="inertial_port" default="/dev/ttyMagabotInertial"/>
 	<arg name="laser_port" default="/dev/ttyURG0"/>
+	<arg name="keyboard_teleop" default="true"/>
 
-	<node name ="magabot_node" pkg="magabot" type="magabot_node" output="screen"> 
+	<node name ="magabot_node" pkg="magabot" type="magabot_node"> 
 		<param name="port" value="$(arg magabot_port)" />
 		<param name="port_inertial" type="string" value="$(arg inertial_port)" />
 		<param name="use_imu" value="true"/>
@@ -17,10 +18,15 @@
 		<param name="vel_ang_max" value="$(arg vel_angular_max)" />
 	</node>
 
-	<node pkg="joy" name="joy_node" type="joy_node"/>
+	<arg name="joy_dev" default="/dev/input/js0" unless="$(arg keyboard_teleop)"/>
+	<node pkg="joy" name="joy_node" type="joy_node" unless="$(arg keyboard_teleop)">
+		<param name="dev" value="$(arg joy_dev)"/>
+	</node>
+
+	<node name="turtlebot3_teleop" pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" if="$(arg keyboard_teleop)" output="screen"/>
 
 <!-- LASER -->
-	<arg name="rplidar" default="false"/>
+	<arg name="rplidar" default="true"/>
 	<node name="urg" pkg="urg_node" type="urg_node" respawn="false" output="screen" unless="$(arg rplidar)">
 		<param name="frame_id" value="laser" />
 		<param name="synchronize_time" type="bool" value="false"/>
@@ -32,5 +38,6 @@
 <!-- Static TFs a bit over 10Hz: -->
 	<arg name="yaw" default="0"/>
 	<node pkg="tf" type="static_transform_publisher" name="static_laser_tf" args="0.10 0 0 $(arg yaw) 0 0 base_link laser 99" />
-
+	<node pkg="tf" type="static_transform_publisher" name="footprint_tf" args="0 0 0 0 0 0 base_footprint base_link 99" />
+	
 </launch>
