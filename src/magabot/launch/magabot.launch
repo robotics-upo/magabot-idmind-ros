@@ -4,11 +4,12 @@
 	<arg name="inertial_port" default="/dev/ttyMagabotInertial"/>
 	<arg name="laser_port" default="/dev/ttyURG0"/>
 	<arg name="keyboard_teleop" default="true"/>
+	<arg name="use_imu" default="true"/>
 
-	<node name ="magabot_node" pkg="magabot" type="magabot_node"> 
+	<node name ="magabot_node" pkg="magabot" type="magabot_node" output="screen" > 
 		<param name="port" value="$(arg magabot_port)" />
 		<param name="port_inertial" type="string" value="$(arg inertial_port)" />
-		<param name="use_imu" value="true"/>
+		<param name="use_imu" type="bool" value="$(arg use_imu)"/>
 	</node>
 
     <arg name="vel_linear_max" default="0.2"/>
@@ -38,6 +39,6 @@
 <!-- Static TFs a bit over 10Hz: -->
 	<arg name="yaw" default="0"/>
 	<node pkg="tf" type="static_transform_publisher" name="static_laser_tf" args="0.10 0 0 $(arg yaw) 0 0 base_link laser 99" />
-	<node pkg="tf" type="static_transform_publisher" name="footprint_tf" args="0 0 0 0 0 0 base_footprint base_link 99" />
+	<node pkg="tf" type="static_transform_publisher" name="footprint_tf" args="0 0 0 0 0 0  base_link base_footprint 99" />
 	
 </launch>
